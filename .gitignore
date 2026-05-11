@@ -1,0 +1,62 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+*.egg
+build/
+dist/
+.eggs/
+pip-wheel-metadata/
+.tox/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Test / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# Type checkers
+.mypy_cache/
+.ruff_cache/
+
+# Project local data (не коммитим)
+projects/
+settings.json
+settings.local.json
+*.session
+playwright_profiles/
+downloads/
+
+# Logs
+*.log
+
+# Generated media (на всякий случай)
+*.mp4
+*.mkv
+*.wav
+*.mp3
+*.png
+*.jpg
+*.jpeg
+# но кадры скриншоты в docs нужны
+!docs/**/*.png
+!docs/**/*.jpg
+!docs/**/*.jpeg
+!assets/**/*.png
+!assets/**/*.jpg
+!assets/**/*.jpeg
