@@ -41,14 +41,16 @@ LANGUAGES = ["original", "english", "russian"]
 class MainWindow(ctk.CTk):
     def __init__(self, state: AppState) -> None:
         super().__init__()
-        self.state = state
-        self.state.start_worker()
+        # NB: do NOT use `self.state` — Tk's window already has a `state()` method,
+        # and customtkinter's scaling tracker calls it periodically.
+        self.app_state = state
+        self.app_state.start_worker()
 
         self.title("Fox2-clone")
         self.geometry("1280x780")
         self.configure(fg_color=COLOR_BG)
 
-        ctk.set_appearance_mode(self.state.settings.appearance_mode or "Dark")
+        ctk.set_appearance_mode(self.app_state.settings.appearance_mode or "Dark")
         ctk.set_default_color_theme("blue")
 
         self.grid_columnconfigure(0, weight=2)
@@ -190,13 +192,13 @@ class MainWindow(ctk.CTk):
         ):
             self.tabs.add(tab_name)
 
-        SettingsTab(self.tabs.tab("Настройки"), self.state).pack(fill="both", expand=True)
-        VoicingTab(self.tabs.tab("Озвучка"), self.state).pack(fill="both", expand=True)
-        MediaTab(self.tabs.tab("Медиа"), self.state).pack(fill="both", expand=True)
-        VideoTab(self.tabs.tab("Видео"), self.state).pack(fill="both", expand=True)
-        BrowserTab(self.tabs.tab("Браузер"), self.state).pack(fill="both", expand=True)
-        AssemblyTab(self.tabs.tab("Сборка"), self.state).pack(fill="both", expand=True)
-        VoiceWebTab(self.tabs.tab("Озвучка Веб"), self.state).pack(fill="both", expand=True)
+        SettingsTab(self.tabs.tab("Настройки"), self.app_state).pack(fill="both", expand=True)
+        VoicingTab(self.tabs.tab("Озвучка"), self.app_state).pack(fill="both", expand=True)
+        MediaTab(self.tabs.tab("Медиа"), self.app_state).pack(fill="both", expand=True)
+        VideoTab(self.tabs.tab("Видео"), self.app_state).pack(fill="both", expand=True)
+        BrowserTab(self.tabs.tab("Браузер"), self.app_state).pack(fill="both", expand=True)
+        AssemblyTab(self.tabs.tab("Сборка"), self.app_state).pack(fill="both", expand=True)
+        VoiceWebTab(self.tabs.tab("Озвучка Веб"), self.app_state).pack(fill="both", expand=True)
 
     def _wire_log_buffer(self) -> None:
         handler = get_ui_log_handler()
@@ -245,7 +247,7 @@ class MainWindow(ctk.CTk):
         voicing_mode = VoicingMode(self.voicing_mode_var.get())
 
         # Создаём проект
-        project = self.state.open_or_create_project(name=f"Project_{int(__import__('time').time())}")
+        project = self.app_state.open_or_create_project(name=f"Project_{int(__import__('time').time())}")
         project.meta.script = script
         project.meta.sentences_per_scene = per_scene
         project.meta.style = self.style_var.get()
@@ -259,7 +261,7 @@ class MainWindow(ctk.CTk):
 
         self._set_status("Генерирую промты...")
         self.progress.set(0.05)
-        settings = self.state.settings
+        settings = self.app_state.settings
 
         def run() -> None:
             try:
@@ -300,7 +302,7 @@ class MainWindow(ctk.CTk):
                 log.exception("Ошибка пайплайна")
                 self._update_progress(0.0, f"Ошибка: {exc}")
 
-        self.state.submit(run)
+        self.app_state.submit(run)
 
     def _update_progress(self, value: float, status: str) -> None:
         self.after(0, lambda: self.progress.set(value))

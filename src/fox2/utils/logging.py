@@ -9,7 +9,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 
 
-@dataclass
+@dataclass(eq=False)
 class UILogHandler(logging.Handler):
     """Логгер, который держит последние N строк и зовёт callback'и (например, GUI)."""
 
