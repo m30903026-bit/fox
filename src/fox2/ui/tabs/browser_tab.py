@@ -42,7 +42,7 @@ class BrowserTab(ctk.CTkFrame):
             row=1, column=0, sticky="ew", padx=12
         )
 
-        self.new_profile_var = ctk.StringVar()
+        self.new_profile_var = ctk.StringVar(value=self._next_profile_name())
         LabelRow(
             card,
             "Новый профиль:",
@@ -153,15 +153,16 @@ class BrowserTab(ctk.CTkFrame):
     def _create_profile(self) -> None:
         name = BrowserProfileManager._safe_name(self.new_profile_var.get())
         if not name:
-            return
+            name = self._next_profile_name()
         self.profile_manager.ensure_account(name)
         self._save_browser_settings()
         values = self._profile_names()
         self.profile_menu.configure(values=values)
         self.profile_var.set(name)
+        self.new_profile_var.set(self._next_profile_name())
         self.state.settings.active_browser_profile = name
         self.state.save_settings()
-        self._refresh_profile_status()
+        self._refresh_profile_status(f"Профиль {name} создан. Теперь нажмите «Открыть Chrome».")
 
     def _open_profile(self) -> None:
         name = self.profile_var.get().strip() or "default"
@@ -228,12 +229,19 @@ class BrowserTab(ctk.CTkFrame):
         names = [account.name for account in self.profile_manager.selectable_accounts()]
         return names or ["default"]
 
+    def _next_profile_name(self) -> str:
+        existing = set(self._profile_names())
+        idx = 1
+        while f"acc{idx}" in existing:
+            idx += 1
+        return f"acc{idx}"
+
     def _save_browser_settings(self) -> None:
         self.state.settings.browser_executable_path = self.browser_path_var.get().strip()
         self.state.settings.browser_start_url = self.start_url_var.get().strip()
         self.state.settings.browser_extension_path = self.extension_path_var.get().strip()
 
-    def _refresh_profile_status(self) -> None:
+    def _refresh_profile_status(self, prefix: str = "") -> None:
         account = self._selected_account()
         values = self._profile_names()
         self.profile_menu.configure(values=values)
@@ -242,7 +250,8 @@ class BrowserTab(ctk.CTkFrame):
         for item in self.profile_manager.selectable_accounts():
             state = "пауза" if item.paused else "активен"
             rows.append(f"{item.name}: {item.credits_left}/{item.credits_per_day} кредитов, {state}")
-        self._set_profile_status("\n".join(rows))
+        text = "\n".join(rows)
+        self._set_profile_status(f"{prefix}\n{text}" if prefix else text)
 
     def _set_profile_status(self, text: str) -> None:
         self.profile_status.configure(text=text)
