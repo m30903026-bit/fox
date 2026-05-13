@@ -21,6 +21,21 @@ class CoordinateProfile(BaseModel):
     points: dict[str, dict[str, float]] = Field(default_factory=dict)
 
 
+class BrowserAccountProfile(BaseModel):
+    """Профиль одного Google-аккаунта для браузерной автоматизации."""
+
+    name: str
+    label: str = ""
+    credits_per_day: int = 50
+    credits_used_today: int = 0
+    paused: bool = False
+    last_error: str = ""
+
+    @property
+    def credits_left(self) -> int:
+        return max(self.credits_per_day - self.credits_used_today, 0)
+
+
 class AppSettings(BaseModel):
     """Глобальные настройки приложения. Хранятся в ~/Fox2Clone/settings.json"""
 
@@ -58,6 +73,10 @@ class AppSettings(BaseModel):
     # --- Менеджер аккаунтов / профили браузера ---
     browser_profiles_dir: str = ""  # пусто => app_dir()/playwright_profiles
     active_browser_profile: str = "default"
+    browser_executable_path: str = ""  # пусто => найти системный Chrome/Chromium
+    browser_extension_path: str = ""  # unpacked extension folder, .crx ставится вручную
+    browser_start_url: str = "https://labs.google/fx/tools/flow"
+    browser_accounts: list[BrowserAccountProfile] = Field(default_factory=list)
 
     # --- Координаты для всех браузерных сайтов ---
     coordinate_profiles: list[CoordinateProfile] = Field(default_factory=list)
