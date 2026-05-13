@@ -42,7 +42,7 @@ class BrowserTab(ctk.CTkFrame):
             row=1, column=0, sticky="ew", padx=12
         )
 
-        self.new_profile_var = ctk.StringVar()
+        self.new_profile_var = ctk.StringVar(value=self._next_profile_name())
         LabelRow(
             card,
             "Новый профиль:",
@@ -153,14 +153,13 @@ class BrowserTab(ctk.CTkFrame):
     def _create_profile(self) -> None:
         name = BrowserProfileManager._safe_name(self.new_profile_var.get())
         if not name:
-            self._set_profile_status("Введите имя в поле «Новый профиль», например acc1.")
-            return
+            name = self._next_profile_name()
         self.profile_manager.ensure_account(name)
         self._save_browser_settings()
         values = self._profile_names()
         self.profile_menu.configure(values=values)
         self.profile_var.set(name)
-        self.new_profile_var.set("")
+        self.new_profile_var.set(self._next_profile_name())
         self.state.settings.active_browser_profile = name
         self.state.save_settings()
         self._refresh_profile_status(f"Профиль {name} создан. Теперь нажмите «Открыть Chrome».")
@@ -229,6 +228,13 @@ class BrowserTab(ctk.CTkFrame):
     def _profile_names(self) -> list[str]:
         names = [account.name for account in self.profile_manager.selectable_accounts()]
         return names or ["default"]
+
+    def _next_profile_name(self) -> str:
+        existing = set(self._profile_names())
+        idx = 1
+        while f"acc{idx}" in existing:
+            idx += 1
+        return f"acc{idx}"
 
     def _save_browser_settings(self) -> None:
         self.state.settings.browser_executable_path = self.browser_path_var.get().strip()
